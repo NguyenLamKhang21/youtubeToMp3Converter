@@ -40,7 +40,7 @@ app.post("/download", (req, res) => {
   const outputPath = path.join(__dirname, "downloads", fileName);
   console.log("file name: ", outputPath);
   //xiu test what will happended if i don't convert it to mp3?
-  const command = `yt-dlp -x --audio-format mp3 -o "${outputPath}.%(ext)s" "${safeUrl}"`;
+  const command = `yt-dlp -x --audio-format mp3 --print title --no-simulate -o "${outputPath}.%(ext)s" "${safeUrl}"`;
   //-x mean extract audio only
   //then convert it into mp3
 
@@ -59,6 +59,7 @@ app.post("/download", (req, res) => {
       res.json({
         message: "Download successful",
         file: `${fileName}.mp3`,
+        title: stdout.trim(),
       });
     },
   );
