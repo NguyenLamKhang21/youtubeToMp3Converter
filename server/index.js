@@ -6,7 +6,6 @@ const { exec } = require("child_process");
 const path = require("path"); // help to find path to !!downloads!!
 const { v4: uuidv4 } = require("uuid");
 const { error } = require("console");
-const { stdout, stderr, title } = require("process");
 
 const app = express();
 //turning cors on
@@ -21,6 +20,10 @@ app.use("/files", express.static(path.join(__dirname, "downloads")));
 app.post("/download", (req, res) => {
   const { url } = req.body;
 
+  if (!url) {
+    return res.status(400).json({ error: "no URL provided" });
+  }
+
   //bỏ đi query parameter thuộc dạng list với index do hiện tại chức năng của server bây giờ là chỉ tải 1 vid đơn lẻ
   //chứ không phải tải playlist
   const cleanUrl = new URL(url); // url dạng object
@@ -32,15 +35,11 @@ app.post("/download", (req, res) => {
   const safeUrl = cleanUrl.toString(); // có toString() thì biến nó thành dạng string và chỉ lấy ra phần origin có link
   console.log("this is the safeURl", safeUrl);
 
-  if (!url) {
-    return res.status(400).json({ error: "no URL provided" });
-  }
-
   const fileName = uuidv4();
   const outputPath = path.join(__dirname, "downloads", fileName);
   console.log("file name: ", outputPath);
   //xiu test what will happended if i don't convert it to mp3?
-  const command = `yt-dlp -x --audio-format mp3 --print title --no-simulate -o "${outputPath}.%(ext)s" "${safeUrl}"`;
+  const command = `yt-dlp -x --audio-format mp3 -o "${outputPath}.%(ext)s" "${safeUrl}"`;
   //-x mean extract audio only
   //then convert it into mp3
 
@@ -59,15 +58,19 @@ app.post("/download", (req, res) => {
       res.json({
         message: "Download successful",
         file: `${fileName}.mp3`,
-        title: stdout.trim(),
       });
     },
+    console.log(title),
   );
 });
 
 //chỉ dùng để lấy ra title
 app.post("/get-title", (req, res) => {
   const { url } = req.body;
+
+  if (!url) {
+    return res.status(400).json({ error: "no URL provided CUNT" });
+  }
 
   //bỏ đi query parameter thuộc dạng list với index do hiện tại chức năng của server bây giờ là chỉ tải 1 vid đơn lẻ
   //chứ không phải tải playlist
