@@ -54,13 +54,12 @@ app.post("/download", (req, res) => {
         });
       }
 
-      // success — send the file info back
+      // success — send the file info back (bao gồm cả title)
       res.json({
         message: "Download successful",
         file: `${fileName}.mp3`,
       });
     },
-    console.log(title),
   );
 });
 
