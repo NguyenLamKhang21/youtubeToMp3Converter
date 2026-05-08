@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState("idle");
   const [videoTitle, setVideoTitle] = useState("");
   const [fileName, setFileName] = useState("");
-  const [downloadTitle, setDownloadTitle] = useState("");
+
 
   const handleDownload = async () => {
     if (!url) {
@@ -27,7 +28,6 @@ function App() {
       });
 
       const tittleData = await titleRes.json();
-      setDownloadTitle(tittleData.title);
 
       setStatus("downloading");
 
@@ -36,7 +36,8 @@ function App() {
         setFileName(tittleData.file);
         // setDownloadTitle(data.title);
         setStatus("done");
-        console.log(tittleData.title);
+        console.log("Download done, title:", videoTitle);
+        //ở khúc này đang bị lỗi không lấy ra đợc title để gán lên tên file download
       } else setStatus("error");
     } catch (err) {
       setStatus("error");
@@ -52,7 +53,7 @@ function App() {
 
     const link = document.createElement("a"); //creates an invisible download link in memory
     link.href = blobUrl;
-    link.download = `${downloadTitle}.mp3`;
+    link.download = `${videoTitle || "download"}.mp3`;
     link.click();
 
     URL.revokeObjectURL(blobUrl); //dùng xong bỏ
@@ -97,36 +98,41 @@ function App() {
 
   return (
     <div className="background">
-      <h1>Youtube to MP3 converter chigga</h1>
-      <p>Video Title: {videoTitle}</p>
-      {/* instead of showing the url, it will show the title of the video 
+      <div className="card">
+        <h1>Youtube to MP3 converter chigga</h1>
+        <p>Video Title: {videoTitle}</p>
+        {/* instead of showing the url, it will show the title of the video 
       DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONEDONE DONE DONE  */}
 
-      <input
-        type="text"
-        placeholder="paste Youtube url here"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-      />
+        <input
+          type="text"
+          placeholder="paste Youtube url here"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
 
-      <button onClick={handleDownload}>Convert to MP3</button>
+        <button onClick={handleDownload}>Convert to MP3</button>
 
-      {status === "idle" && <p>Enter a Youtube URL to get started.</p>}
-      {status === "fetching" && <p>Fetching vid info</p>}
-      {status === "downloading" && (
-        <p>the video is downloading please wait {downloadTitle}</p>
-      )}
-      {status === "done" && (
-        <div>
-          <p>Done your MP3 is ready to go buckaroo</p>
-          {/* cái lòn title này t lấy ra từ khúc ở useEffect được không hay là nó
+        {status === "idle" && <p>Enter a Youtube URL to get started.</p>}
+        {status === "fetching" && <p>Fetching vid info</p>}
+        {status === "downloading" && (
+          <>
+            <div className="spinner"></div>
+            <p>the video is downloading please wait {videoTitle}</p>
+          </>
+        )}
+        {status === "done" && (
+          <div className="spinner">
+            <p>Done your MP3 is ready to go buckaroo</p>
+            {/* cái lòn title này t lấy ra từ khúc ở useEffect được không hay là nó
           chỉ local? */}
-          <button onClick={handleSaveFile}>Download MP3</button>
-        </div>
-      )}
-      {status === "error" && (
-        <p>something went wrong please check the URL and try again</p>
-      )}
+            <button onClick={handleSaveFile}>Download MP3</button>
+          </div>
+        )}
+        {status === "error" && (
+          <p>something went wrong please check the URL and try again</p>
+        )}
+      </div>
     </div>
   );
 }
