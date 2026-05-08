@@ -16,7 +16,9 @@ function App() {
     setStatus("downloading");
     //try to show the percentage of download and time till finish later
     try {
-      const res = await fetch("http://localhost:5000/download", {
+      setStatus("fetching");
+
+      const titleRes = await fetch("http://localhost:5000/download", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -24,17 +26,36 @@ function App() {
         body: JSON.stringify({ url }),
       });
 
-      const data = await res.json();
+      const tittleData = await titleRes.json();
+      setDownloadTitle(tittleData.title);
 
-      if (res.ok) {
+      setStatus("downloading");
+
+      if (titleRes.ok) {
         //after link good just show title so this bye bye?
-        setFileName(data.file);
-        setDownloadTitle(data.title);
+        setFileName(tittleData.file);
+        // setDownloadTitle(data.title);
         setStatus("done");
+        console.log(tittleData.title);
       } else setStatus("error");
     } catch (err) {
       setStatus("error");
     }
+  };
+
+  //
+  const handleSaveFile = async () => {
+    const fileUrl = `http://localhost:5000/files/${fileName}`;
+    const res = await fetch(fileUrl);
+    const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
+    const blobUrl = URL.createObjectURL(blob); //creates a temporary invisible URL for that blob
+
+    const link = document.createElement("a"); //creates an invisible download link in memory
+    link.href = blobUrl;
+    link.download = `${downloadTitle}.mp3`;
+    link.click();
+
+    URL.revokeObjectURL(blobUrl); //dùng xong bỏ
   };
 
   //extract the title from the url to show after use finish pasting / typing the url in
@@ -75,7 +96,7 @@ function App() {
   }, [status]);
 
   return (
-    <div>
+    <div className="background">
       <h1>Youtube to MP3 converter chigga</h1>
       <p>Video Title: {videoTitle}</p>
       {/* instead of showing the url, it will show the title of the video 
@@ -91,18 +112,16 @@ function App() {
       <button onClick={handleDownload}>Convert to MP3</button>
 
       {status === "idle" && <p>Enter a Youtube URL to get started.</p>}
-      {status === "downloading" && <p>the video is downloading please wait</p>}
+      {status === "fetching" && <p>Fetching vid info</p>}
+      {status === "downloading" && (
+        <p>the video is downloading please wait {downloadTitle}</p>
+      )}
       {status === "done" && (
         <div>
           <p>Done your MP3 is ready to go buckaroo</p>
           {/* cái lòn title này t lấy ra từ khúc ở useEffect được không hay là nó
           chỉ local? */}
-          <a
-            href={`http://localhost:5000/files/${fileName}`}
-            download={`${downloadTitle}.mp3`}
-          >
-            <button>Download MP3</button>
-          </a>
+          <button onClick={handleSaveFile}>Download MP3</button>
         </div>
       )}
       {status === "error" && (
