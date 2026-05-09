@@ -1,17 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
-.App {
-  text-align: center;
-}
-
 .background {
+  margin: 0;
   font-family: "Inter", sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  background: radial-gradient(circle at top right, #2d1b69, #0f172a 50%);
   color: #e0e0e0;
 }
 
@@ -20,16 +17,17 @@ h1 {
   font-weight: bold;
 }
 
-.card {
+.converter-card {
   background: rgba(255, 255, 255, 0.05); /* nền trong suốt nhẹ */
-  backdrop-filter: blur(10px); /* hiệu ứng kính mờ */
-  border: 1px solid rgba(rgba(255, 255, 255, 0.05)); /* viền mỏng */
-  border-radius: 16px;
+  backdrop-filter: blur(16px); /* hiệu ứng kính mờ */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* viền mỏng */
+  border-radius: 24px;
   padding: 40px;
   max-width: 500px;
   width: 90%; /* responsive */
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   gap: 16px;
+  text-align: center;
 }
 
 input[type="text"] {
@@ -79,42 +77,46 @@ button:hover {
   margin: 16px auto;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.result {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  gap: 16px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.download-btn {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 1.1rem;
+}
+
+.reset-btn {
+  background: none;
+  border: none;
+  color: #a5b4fc;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.9rem;
+  padding: 8px;
+}
+
+.reset-btn:hover {
   color: white;
+  transform: none;
+  box-shadow: none;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
+@keyframes spin {
   to {
     transform: rotate(360deg);
   }

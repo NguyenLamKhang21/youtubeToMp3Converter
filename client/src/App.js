@@ -95,22 +95,21 @@ function App() {
 
   return (
     <div className="background">
-      <div className="card">
+      <div className="converter-card">
         <h1>Youtube to MP3 converter chigga</h1>
-        <p>Video Title: {videoTitle}</p>
-        {/* instead of showing the url, it will show the title of the video 
-        DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONEDONE DONE DONE  */}
 
-        <input
-          type="text"
-          placeholder="paste Youtube url here"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
-
-        <button onClick={handleDownload}>Convert to MP3</button>
-
-        {status === "idle" && <p>Enter a Youtube URL to get started.</p>}
+        {status === "idle" && (
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="paste Youtube url here"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+            <button onClick={handleDownload}>Convert to MP3</button>
+            <p>Enter a Youtbe URL to start downloading</p>
+          </div>
+        )}
         {status === "fetching" && (
           <>
             <div className="spinner"></div>
@@ -118,11 +117,25 @@ function App() {
           </>
         )}
         {status === "done" && (
-          <div>
+          <div className="result">
+            <h3>{videoTitle}</h3>
             <p>Done your MP3 is ready to go buckaroo</p>
-            {/* cái lòn title này t lấy ra từ khúc ở useEffect được không hay là nó
-          chỉ local? */}
-            <button onClick={handleSaveFile}>Download MP3</button>
+            <button className="download-btn" onClick={handleSaveFile}>
+              Download MP3
+            </button>
+            <button
+              className="rest-btn"
+              onClick={() => {
+                setStatus("idle");
+                setUrl("");
+                setVideoTitle("");
+                setFileName("");
+                //user ấn tải xong thì mình wipe cho clear những giá trị trước đó
+                //là rỗng cho input mới với lần tải
+              }}
+            >
+              Convert Another
+            </button>
           </div>
         )}
         {status === "error" && (
