@@ -7,44 +7,7 @@ function App() {
   const [videoTitle, setVideoTitle] = useState("");
   const [fileName, setFileName] = useState("");
 
-
-  const handleDownload = async () => {
-    if (!url) {
-      setStatus("pasue");
-      return;
-    }
-
-    setStatus("downloading");
-    //try to show the percentage of download and time till finish later
-    try {
-      setStatus("fetching");
-
-      const titleRes = await fetch("http://localhost:5000/download", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url }),
-      });
-
-      const tittleData = await titleRes.json();
-
-      setStatus("downloading");
-
-      if (titleRes.ok) {
-        //after link good just show title so this bye bye?
-        setFileName(tittleData.file);
-        // setDownloadTitle(data.title);
-        setStatus("done");
-        console.log("Download done, title:", videoTitle);
-        //ở khúc này đang bị lỗi không lấy ra đợc title để gán lên tên file download
-      } else setStatus("error");
-    } catch (err) {
-      setStatus("error");
-    }
-  };
-
-  //
+  //convert sang mp3
   const handleSaveFile = async () => {
     const fileUrl = `http://localhost:5000/files/${fileName}`;
     const res = await fetch(fileUrl);
@@ -59,7 +22,41 @@ function App() {
     URL.revokeObjectURL(blobUrl); //dùng xong bỏ
   };
 
-  //extract the title from the url to show after use finish pasting / typing the url in
+  const handleDownload = async () => {
+    if (!url) {
+      setStatus("pasue");
+      return;
+    }
+
+    //try to show the percentage of download and time till finish later
+    try {
+      setStatus("fetching");
+
+      const titleRes = await fetch("http://localhost:5000/download", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      const tittleData = await titleRes.json();
+
+      if (titleRes.ok) {
+        //after link good just show title so this bye bye?
+        setFileName(tittleData.file);
+        // setDownloadTitle(data.title);
+        setStatus("done");
+        console.log("Download done, title:", videoTitle);
+        //ở khúc này đang bị lỗi không lấy ra đợc title để gán lên tên file download
+        //lấy đc r
+      } else setStatus("error");
+    } catch (err) {
+      setStatus("error");
+    }
+  };
+
+  //extract the title from the url to show after user finish pasting / typing the url in
   //add a dnbounce pattern in so that it will honly show the title of URL after a set ammount of time
   //only in use when the url change if not then mehhhh
   useEffect(() => {
@@ -102,7 +99,7 @@ function App() {
         <h1>Youtube to MP3 converter chigga</h1>
         <p>Video Title: {videoTitle}</p>
         {/* instead of showing the url, it will show the title of the video 
-      DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONEDONE DONE DONE  */}
+        DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONEDONE DONE DONE  */}
 
         <input
           type="text"
@@ -114,15 +111,14 @@ function App() {
         <button onClick={handleDownload}>Convert to MP3</button>
 
         {status === "idle" && <p>Enter a Youtube URL to get started.</p>}
-        {status === "fetching" && <p>Fetching vid info</p>}
-        {status === "downloading" && (
+        {status === "fetching" && (
           <>
             <div className="spinner"></div>
             <p>the video is downloading please wait {videoTitle}</p>
           </>
         )}
         {status === "done" && (
-          <div className="spinner">
+          <div>
             <p>Done your MP3 is ready to go buckaroo</p>
             {/* cái lòn title này t lấy ra từ khúc ở useEffect được không hay là nó
           chỉ local? */}
