@@ -50,6 +50,7 @@ function App() {
         console.log("Download done, title:", videoTitle);
         //ở khúc này đang bị lỗi không lấy ra đợc title để gán lên tên file download
         //lấy đc r
+        console.log("vid cos sanx r", tittleData.file);
       } else setStatus("error");
     } catch (err) {
       setStatus("error");
@@ -67,7 +68,7 @@ function App() {
       const fetchTitle = async () => {
         try {
           const res = await fetch("http://localhost:5000/get-title", {
-            method: "POST",
+            method: "POST", //option request for preflight
             headers: {
               "Content-Type": "application/json",
             },
@@ -113,7 +114,7 @@ function App() {
         {status === "fetching" && (
           <>
             <div className="spinner"></div>
-            <p>the video is downloading please wait {videoTitle}</p>
+            <p>the video is downloading: {videoTitle}</p>
           </>
         )}
         {status === "done" && (
