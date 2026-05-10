@@ -6,6 +6,7 @@ function App() {
   const [status, setStatus] = useState("idle");
   const [videoTitle, setVideoTitle] = useState("");
   const [fileName, setFileName] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
 
   //convert sang mp3
   const handleSaveFile = async () => {
@@ -62,9 +63,17 @@ function App() {
   //only in use when the url change if not then mehhhh
   useEffect(() => {
     if (!url) {
+      setThumbnailUrl("");
       return;
     }
+
     const timer = setTimeout(() => {
+      try {
+        const parsed = new URL(url);
+        const videoId = parsed.searchParams.get("v");
+        setThumbnailUrl(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
+      } catch (error) {}
+
       const fetchTitle = async () => {
         try {
           const res = await fetch("http://localhost:5000/get-title", {
@@ -107,6 +116,12 @@ function App() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
+            {/* sau khi user bỏ link vào xong thì fetch cái title hiện ra, với cái thumbnail nx */}
+            <div className="thumbnail-title">
+              {thumbnailUrl && <img src={thumbnailUrl} alt="Video thumbnail" />}
+              <p>{videoTitle}</p>
+            </div>
+
             <button onClick={handleDownload}>Convert to MP3</button>
             <p>Enter a Youtbe URL to start downloading</p>
           </div>
@@ -114,13 +129,17 @@ function App() {
         {status === "fetching" && (
           <>
             <div className="spinner"></div>
-            <p>the video is downloading: {videoTitle}</p>
+            <p>fetching info from server: {videoTitle}</p>
           </>
         )}
         {status === "done" && (
           <div className="result">
             <h3>{videoTitle}</h3>
-            <p>Done your MP3 is ready to go buckaroo</p>
+            <p>Done your MP3 is ready to go buckaroo click below to download</p>
+
+            <div className="download-thumbnail">
+              {thumbnailUrl && <img src={thumbnailUrl} alt="Video thumbnail" />}
+            </div>
             <button className="download-btn" onClick={handleSaveFile}>
               Download MP3
             </button>
@@ -131,6 +150,7 @@ function App() {
                 setUrl("");
                 setVideoTitle("");
                 setFileName("");
+                setThumbnailUrl("");
                 //user ấn tải xong thì mình wipe cho clear những giá trị trước đó
                 //là rỗng cho input mới với lần tải
               }}
