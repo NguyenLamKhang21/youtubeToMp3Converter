@@ -6,6 +6,13 @@ const { exec } = require("child_process");
 const path = require("path"); // help to find path to !!downloads!!
 const { error } = require("console");
 const fs = require("fs");
+const QUALITY_MAP = {
+  "720p":
+    "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]",
+  "1080p":
+    "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]",
+  "4k": "bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160]",
+};
 
 const app = express();
 //turning cors on
@@ -15,9 +22,10 @@ app.use(express.json());
 
 app.use("/files", express.static(path.join(__dirname, "downloads")));
 
-//chỉ tải audio (nếu mà thêm cái lấy title ở đây thì nó ko đc do phải tải xong mới biết được tên video :)))))) không tải thì đm chỉ biết
+//chỉ tải audio (nếu mà thêm cái lấy title ở đây thì nó ko đc do phải tải với convert sang mp3 trên server
+// xong mới biết được tên video :)))))) không tải thì đm chỉ biết
 //cái url
-app.post("/download", (req, res) => {
+app.post("/download_audio", (req, res) => {
   const { url } = req.body;
 
   if (!url) {
@@ -30,6 +38,7 @@ app.post("/download", (req, res) => {
   cleanUrl.searchParams.delete("list");
   cleanUrl.searchParams.delete("index");
   const videoId = cleanUrl.searchParams.get("v"); // lấy ra id định danh duy nhất của mỗi vidoe
+
   console.log("this is the cleanURL", cleanUrl);
 
   //lọc xong r thì nối lại link
@@ -38,7 +47,7 @@ app.post("/download", (req, res) => {
 
   //lưu cái id đó thành fileName r lưu trên server
 
-  const filePath = path.join(__dirname, "downloads", `${videoId}`); //hieur la filePaht
+  const filePath = path.join(__dirname, "downloads", `${videoId}`);
 
   if (fs.existsSync(filePath)) {
     // File already exists! Skip downloading, just return the existing file
@@ -67,11 +76,80 @@ app.post("/download", (req, res) => {
 
       // success — send the file info back
       res.json({
-        message: "Download successful",
-        file: `${videoId}.mp3`,
+        // thử log ra bên app.js
+        message: "Audio Ready to Download successful",
+        file: `${videoId}`,
       });
     },
   );
+});
+
+app.post("/download_video", (req, res) => {
+  const { url, quality } = req.body;
+
+  //????? hơi skeptical khúc này
+  if (!url || !quality) {
+    return res.status(400).json({ error: "no URL or quality provided" });
+  }
+  const cleanURL = new URL(url);
+  cleanURL.searchParams.delete("list");
+  cleanURL.searchParams.delete("index");
+  const videoId = cleanURL.searchParams.get("v");
+
+  const safeURl = cleanURL.toString();
+
+  //temp files delete after merge (v là thay vì lấy audio ra từ server
+  //thì nó sẽ chạy 2 lệnh 1 cái lấy mỗi video và 1 cái lấy mỗi audio
+  //từ youtube. Thay vì cách t nghĩ là chỉ cần lấy mỗi video th
+  //còn audio thì dựa vào cái video ID của audio mà lấy ra
+  //gộp với cái video. Bớt 1 lệnh phải tải và xoá trên server
+  // )
+  const videoTempPath = path.join(
+    __dirname,
+    "downloads",
+    `${videoId}_video_temp.mp4`,
+  );
+  const audioTempPath = path.join(
+    __dirname,
+    "downloads",
+    `${videoId}_audio_temp.m4a`,
+  );
+
+  //final merge and then delete the temp above
+  const finalPath = path.join(__dirname, "downloads", `${videoId}_${quality}`);
+
+  if (fs.existsSync(finalPath)) {
+    return res.json({
+      //tí t thử log ra cái này xem
+      message: "video already to on servers",
+      file: `${videoId}__${quality}.mp4`,
+    });
+  }
+  //mé cái này lúc đầu AI gen ra t không biết dùng ở đâu :))) ai ngờ bây giờ hỏi lại
+  //thì mới biết là nó dùng cho khúc ở height<=1080 ==> height<=${videoFormat} :)))) vclllll thật
+  const videoFormat = QUALITY_MAP[quality] || QUALITY_MAP["720p"];
+  const HEIGHT_MAP = { "720p": 720, "1080p": 1080, "4k": 2160 };
+  const height = HEIGHT_MAP[quality] || 1080;
+
+  const videoCmd = `yt-dlp -f "bestvideo[height<=${height}][ext=mp4]" -o "${videoTempPath}" "${safeURl}"`;
+  const audioCmd = `yt-dlp -f "bestaudio[ext=m4a]" -o "${audioTempPath}" "${safeURl}"`;
+  const mergeCmd = `ffmpeg -i "${videoTempPath}" -i "${audioTempPath}" -c:v copy -c:a copy "${finalPath}.mp4"`;
+  // -c:v copy = don't re-encode video (keeps quality, saves CPU)
+  // -c:a copy = don't re-encode audio (same reason)
+
+  exec((videoCmd) => {
+    exec((audioCmd) => {
+      exec(mergeCmd, () => {
+        fs.unlinkSync(videoTempPath);
+        fs.unlinkSync(audioTempPath);
+        res.json({
+          file: `${videoId}__${quality}.mp4`,
+          message:
+            "done downloading and mergin the video and audio and remove the tmp",
+        });
+      });
+    });
+  });
 });
 
 //chỉ dùng để lấy ra title
@@ -115,9 +193,6 @@ app.post("/get-title", (req, res) => {
     },
   );
 });
-//dùng lệnh dưới đây để post lấy thumbnail, nhớ phải lọc cái url trc không thì nó tải hết playlist đấy
-//yt-dlp --write-thumbnail --skip-download -o "E:\HobbyProject\youtubeToMp3Converter\server\test thumbnail\%(title)s.%(ext)s" "https://www.youtube.com/watch?v=lHLJkdqnhak
-app.p;
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");
