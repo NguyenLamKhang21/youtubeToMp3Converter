@@ -7,10 +7,13 @@ function App() {
   const [videoTitle, setVideoTitle] = useState("");
   const [fileName, setFileName] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [quality, setQuality] = useState("720p");
+  const copy = useState("https://www.youtube.com/watch?v=Gia9cX6gReo");
 
   //convert sang mp3
   const handleSaveFile = async () => {
-    const fileUrl = `http://localhost:5000/files/${fileName}`;
+    // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
+    const fileUrl = `http://localhost:5000/files/${fileName}.mp3`;
     const res = await fetch(fileUrl);
     const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
     const blobUrl = URL.createObjectURL(blob); //creates a temporary invisible URL for that blob
@@ -23,6 +26,46 @@ function App() {
     URL.revokeObjectURL(blobUrl); //dùng xong bỏ
   };
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(copy);
+      console.log("copied");
+    } catch (error) {
+      console.log("failed to copy");
+    }
+  };
+
+  const handleVideo = async () => {
+    if (!url || !quality) {
+      setStatus(`oiiii video thingy ain't wokring cuhh url:`);
+      return;
+    }
+
+    try {
+      setStatus("tryna get the vid");
+
+      const vidRes = await fetch("http://localhost:5000/download_video", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url, quality }),
+      });
+
+      const vidData = await vidRes.json();
+
+      if (vidRes.ok) {
+        setFileName(vidData.file);
+        setStatus("done");
+        console.log("oyyy oyyy it work yet?? ", vidData.message);
+      } else {
+        console.log(vidRes.error);
+      }
+    } catch (err) {
+      setStatus("oiii oii err in vid mate: ", err);
+    }
+  };
+
   const handleDownload = async () => {
     if (!url) {
       setStatus("pasue");
@@ -33,7 +76,7 @@ function App() {
     try {
       setStatus("fetching");
 
-      const titleRes = await fetch("http://localhost:5000/download", {
+      const titleRes = await fetch("http://localhost:5000/download_audio", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,9 +92,8 @@ function App() {
         // setDownloadTitle(data.title);
         setStatus("done");
         console.log("Download done, title:", videoTitle);
-        //ở khúc này đang bị lỗi không lấy ra đợc title để gán lên tên file download
-        //lấy đc r
-        console.log("vid cos sanx r", tittleData.file);
+        console.log("testing testing ", tittleData.message);
+        console.log("testing testing file name gang", tittleData.file);
       } else setStatus("error");
     } catch (err) {
       setStatus("error");
@@ -106,8 +148,10 @@ function App() {
   return (
     <div className="background">
       <div className="converter-card">
-        <h1>Youtube to MP3 converter chigga</h1>
-
+        <h1>Youtube to MP3 / video MP4 converter chigga</h1>
+        <p>use this shit to test the input field bro:</p>
+        <p>https://www.youtube.com/watch?v=Gia9cX6gReo</p>
+        <button onClick={handleCopy}>Copy</button>
         {status === "idle" && (
           <div className="input-group">
             <input
@@ -123,7 +167,24 @@ function App() {
             </div>
 
             <button onClick={handleDownload}>Convert to MP3</button>
-            <p>Enter a Youtbe URL to start downloading</p>
+
+            <select
+              name="quality"
+              id="quality"
+              value={quality}
+              onChange={(e) => setQuality(e.target.value)}
+            >
+              <option value={"720p"}>MP4 - 720p HD</option>
+              <option value={"1080p"}>MP4 - 1080p FHD</option>
+              <option value={"4k"}>MP4 - 4k</option>
+            </select>
+
+            <button onClick={() => handleVideo(quality)}>
+              download Vidoeo
+            </button>
+            {/* tai sao nó chạy ra cái handle vidoe trước v???? */}
+
+            <p className="p-center">Enter a Youtbe URL to start downloading</p>
           </div>
         )}
         {status === "fetching" && (
