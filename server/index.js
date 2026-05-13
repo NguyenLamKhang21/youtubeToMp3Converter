@@ -6,13 +6,6 @@ const { exec } = require("child_process");
 const path = require("path"); // help to find path to !!downloads!!
 const { error } = require("console");
 const fs = require("fs");
-const QUALITY_MAP = {
-  "720p":
-    "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]",
-  "1080p":
-    "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]",
-  "4k": "bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160]",
-};
 
 const app = express();
 //turning cors on
@@ -125,10 +118,19 @@ app.post("/download_video", (req, res) => {
       file: `${videoId}__${quality}.mp4`,
     });
   }
+
+  const QUALITY_MAP = {
+    "720p":
+      "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]",
+    "1080p":
+      "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]",
+    "4k": "bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160]",
+  };
+
+  const HEIGHT_MAP = { "720p": 720, "1080p": 1080, "4k": 2160 };
   //mé cái này lúc đầu AI gen ra t không biết dùng ở đâu :))) ai ngờ bây giờ hỏi lại
   //thì mới biết là nó dùng cho khúc ở height<=1080 ==> height<=${videoFormat} :)))) vclllll thật
   const videoFormat = QUALITY_MAP[quality] || QUALITY_MAP["720p"];
-  const HEIGHT_MAP = { "720p": 720, "1080p": 1080, "4k": 2160 };
   const height = HEIGHT_MAP[quality] || 1080;
 
   const videoCmd = `yt-dlp -f "bestvideo[height<=${height}][ext=mp4]" -o "${videoTempPath}" "${safeURl}"`;
@@ -137,12 +139,31 @@ app.post("/download_video", (req, res) => {
   // -c:v copy = don't re-encode video (keeps quality, saves CPU)
   // -c:a copy = don't re-encode audio (same reason)
 
-  exec((videoCmd) => {
-    exec((audioCmd) => {
-      exec(mergeCmd, () => {
+  exec(videoCmd, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).json({
+        error: "Video download failed",
+        details: stderr,
+      });
+    }
+    exec(audioCmd, (error, stdout, stderr) => {
+      if (error) {
+        return res.status(500).json({
+          error: "Audio download failed",
+          details: stderr,
+        });
+      }
+      exec(mergeCmd, (error, stdout, stderr) => {
+        if (error) {
+          return res.status(500).json({
+            error: "Merged faield",
+            details: stderr,
+          });
+        }
         fs.unlinkSync(videoTempPath);
         fs.unlinkSync(audioTempPath);
         res.json({
+          // thử log ra bên app.js
           file: `${videoId}__${quality}.mp4`,
           message:
             "done downloading and mergin the video and audio and remove the tmp",
