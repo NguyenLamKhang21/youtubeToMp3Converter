@@ -8,7 +8,6 @@ function App() {
   const [fileName, setFileName] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [quality, setQuality] = useState("720p");
-  const copy = useState("https://www.youtube.com/watch?v=Gia9cX6gReo");
 
   //convert sang mp3
   const handleSaveFile = async () => {
@@ -24,15 +23,6 @@ function App() {
     link.click();
 
     URL.revokeObjectURL(blobUrl); //dùng xong bỏ
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(copy);
-      console.log("copied");
-    } catch (error) {
-      console.log("failed to copy");
-    }
   };
 
   const handleVideo = async () => {
@@ -57,9 +47,9 @@ function App() {
       if (vidRes.ok) {
         setFileName(vidData.file);
         setStatus("done");
-        console.log("oyyy oyyy it work yet?? ", vidData.message);
+        console.log("oyyy oyyy it work yet??: ", vidData.message);
       } else {
-        console.log(vidRes.error);
+        console.log(vidRes.message);
       }
     } catch (err) {
       setStatus("oiii oii err in vid mate: ", err);
@@ -149,9 +139,6 @@ function App() {
     <div className="background">
       <div className="converter-card">
         <h1>Youtube to MP3 / video MP4 converter chigga</h1>
-        <p>use this shit to test the input field bro:</p>
-        <p>https://www.youtube.com/watch?v=Gia9cX6gReo</p>
-        <button onClick={handleCopy}>Copy</button>
         {status === "idle" && (
           <div className="input-group">
             <input
