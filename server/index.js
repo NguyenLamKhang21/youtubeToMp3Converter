@@ -32,17 +32,17 @@ app.post("/download_audio", (req, res) => {
   cleanUrl.searchParams.delete("index");
   const videoId = cleanUrl.searchParams.get("v"); // lấy ra id định danh duy nhất của mỗi vidoe
 
-  console.log("this is the cleanURL", cleanUrl);
+  // console.log("this is the cleanURL", cleanUrl);
 
   //lọc xong r thì nối lại link
   const safeUrl = cleanUrl.toString(); // có toString() thì biến nó thành dạng string và chỉ lấy ra phần origin có link
-  console.log("this is the safeURl", safeUrl);
+  // console.log("this is the safeURl", safeUrl);
 
   //lưu cái id đó thành fileName r lưu trên server
 
   const filePath = path.join(__dirname, "downloads", `${videoId}`);
 
-  if (fs.existsSync(filePath)) {
+  if (fs.existsSync(filePath + ".mp3")) {
     // File already exists! Skip downloading, just return the existing file
     return res.json({
       message: "ready to download",
@@ -50,7 +50,7 @@ app.post("/download_audio", (req, res) => {
     });
   }
 
-  console.log("file name: ", filePath);
+  // console.log("file name: ", filePath);
 
   const command = `yt-dlp -x --audio-format mp3 -o "${filePath}.%(ext)s" "${safeUrl}"`;
   //-x mean extract audio only
@@ -80,14 +80,15 @@ app.post("/download_audio", (req, res) => {
 app.post("/download_video", (req, res) => {
   const { url, quality } = req.body;
 
-  //????? hơi skeptical khúc này
   if (!url || !quality) {
     return res.status(400).json({ error: "no URL or quality provided" });
   }
   const cleanURL = new URL(url);
   cleanURL.searchParams.delete("list");
   cleanURL.searchParams.delete("index");
+  // lấy ra vid ID
   const videoId = cleanURL.searchParams.get("v");
+  console.log("video ID: ", videoId);
 
   const safeURl = cleanURL.toString();
 
@@ -108,17 +109,6 @@ app.post("/download_video", (req, res) => {
     `${videoId}_audio_temp.m4a`,
   );
 
-  //final merge and then delete the temp above
-  const finalPath = path.join(__dirname, "downloads", `${videoId}_${quality}`);
-
-  if (fs.existsSync(finalPath)) {
-    return res.json({
-      //tí t thử log ra cái này xem
-      message: "video already to on servers",
-      file: `${videoId}__${quality}.mp4`,
-    });
-  }
-
   const QUALITY_MAP = {
     "720p":
       "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]",
@@ -132,6 +122,24 @@ app.post("/download_video", (req, res) => {
   //thì mới biết là nó dùng cho khúc ở height<=1080 ==> height<=${videoFormat} :)))) vclllll thật
   const videoFormat = QUALITY_MAP[quality] || QUALITY_MAP["720p"];
   const height = HEIGHT_MAP[quality] || 1080;
+  console.log("height htingy: ", height);
+
+  //final merge and then delete the temp above
+
+  const finalPath = path.join(
+    __dirname,
+    "downloads",
+    `${videoId}_${HEIGHT_MAP[quality]}`,
+  );
+  console.log("final Pathh ", finalPath);
+
+  if (fs.existsSync(finalPath + ".mp4")) {
+    return res.json({
+      //tí t thử log ra cái này xem
+      message: "video already to on servers",
+      file: `${videoId}_${HEIGHT_MAP[quality]}.mp4`,
+    });
+  }
 
   const videoCmd = `yt-dlp -f "bestvideo[height<=${height}][ext=mp4]" -o "${videoTempPath}" "${safeURl}"`;
   const audioCmd = `yt-dlp -f "bestaudio[ext=m4a]" -o "${audioTempPath}" "${safeURl}"`;
@@ -202,9 +210,9 @@ app.post("/get-title", (req, res) => {
         });
       }
 
-      console.log(
-        `heyyy heyyy got the title ready bitch ass: ${stdout.trim()}`,
-      );
+      // console.log(
+      //   `heyyy heyyy got the title ready bitch ass: ${stdout.trim()}`,
+      // );
 
       //suecces
       res.json({
