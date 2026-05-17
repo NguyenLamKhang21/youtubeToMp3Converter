@@ -9,10 +9,10 @@ function App() {
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [quality, setQuality] = useState("720p");
 
-  //convert sang mp3
-  const handleSaveFile = async () => {
+  //convert sang mp3 cho user tải về
+  const handlveAudioSave = async () => {
     // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
-    const fileUrl = `http://localhost:5000/files/${fileName}.mp3`;
+    const fileUrl = `http://localhost:5000/files/${fileName}`;
     const res = await fetch(fileUrl);
     const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
     const blobUrl = URL.createObjectURL(blob); //creates a temporary invisible URL for that blob
@@ -25,7 +25,24 @@ function App() {
     URL.revokeObjectURL(blobUrl); //dùng xong bỏ
   };
 
+  //convert sang mp4 và cho user tải về
+  const handleVideoSave = async () => {
+    // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
+    const fileUrl = `http://localhost:5000/files/${fileName}`;
+    const res = await fetch(fileUrl);
+    const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
+    const blobUrl = URL.createObjectURL(blob); //creates a temporary invisible URL for that blob
+
+    const link = document.createElement("a"); //creates an invisible download link in memory
+    link.href = blobUrl;
+    link.download = `${videoTitle || "download"}.mp4`;
+    link.click();
+
+    URL.revokeObjectURL(blobUrl); //dùng xong bỏ
+  };
+
   const handleVideo = async () => {
+    setStatus("idle");
     if (!url || !quality) {
       setStatus(`oiiii video thingy ain't wokring cuhh url:`);
       return;
@@ -56,7 +73,8 @@ function App() {
     }
   };
 
-  const handleDownload = async () => {
+  const handleAudio = async () => {
+    setStatus("idle");
     if (!url) {
       setStatus("pasue");
       return;
@@ -94,11 +112,6 @@ function App() {
   //add a dnbounce pattern in so that it will honly show the title of URL after a set ammount of time
   //only in use when the url change if not then mehhhh
   useEffect(() => {
-    if (!url) {
-      setThumbnailUrl("");
-      return;
-    }
-
     const timer = setTimeout(() => {
       try {
         const parsed = new URL(url);
@@ -138,7 +151,7 @@ function App() {
   return (
     <div className="background">
       <div className="converter-card">
-        <h1>Youtube to MP3 / video MP4 converter chigga</h1>
+        <h1>Youtube to MP3 / video MP4 converter</h1>
         {status === "idle" && (
           <div className="input-group">
             <input
@@ -153,7 +166,7 @@ function App() {
               <p>{videoTitle}</p>
             </div>
 
-            <button onClick={handleDownload}>Convert to MP3</button>
+            <button onClick={handleAudio}>Convert to MP3</button>
 
             <select
               name="quality"
@@ -182,14 +195,17 @@ function App() {
         )}
         {status === "done" && (
           <div className="result">
-            <h3>{videoTitle}</h3>
             <p>Done your MP3 is ready to go buckaroo click below to download</p>
+            <h3>{videoTitle}</h3>
 
             <div className="download-thumbnail">
               {thumbnailUrl && <img src={thumbnailUrl} alt="Video thumbnail" />}
             </div>
-            <button className="download-btn" onClick={handleSaveFile}>
+            <button className="download-btn" onClick={handlveAudioSave}>
               Download MP3
+            </button>
+            <button className="download-btn" onClick={handleVideoSave}>
+              Download video in MP4 BABY
             </button>
             <button
               className="rest-btn"
