@@ -5,14 +5,15 @@ function App() {
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState("idle");
   const [videoTitle, setVideoTitle] = useState("");
-  const [fileName, setFileName] = useState("");
+  const [audioFileName, setAudioFileName] = useState("");
+  const [videoFileName, setVideoFileName] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [quality, setQuality] = useState("720p");
 
   //convert sang mp3 cho user tải về
   const handlveAudioSave = async () => {
     // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
-    const fileUrl = `http://localhost:5000/files/${fileName}`;
+    const fileUrl = `http://localhost:5000/files/${audioFileName}`;
     const res = await fetch(fileUrl);
     const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
     const blobUrl = URL.createObjectURL(blob); //creates a temporary invisible URL for that blob
@@ -28,7 +29,8 @@ function App() {
   //convert sang mp4 và cho user tải về
   const handleVideoSave = async () => {
     // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
-    const fileUrl = `http://localhost:5000/files/${fileName}`;
+    const fileUrl = `http://localhost:5000/files/${videoFileName}`;
+    console.log(fileUrl);
     const res = await fetch(fileUrl);
     const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
     const blobUrl = URL.createObjectURL(blob); //creates a temporary invisible URL for that blob
@@ -41,7 +43,7 @@ function App() {
     URL.revokeObjectURL(blobUrl); //dùng xong bỏ
   };
 
-  const handleVideo = async () => {
+  const handleVideo = async (quality) => {
     setStatus("idle");
     if (!url || !quality) {
       setStatus(`oiiii video thingy ain't wokring cuhh url:`);
@@ -62,7 +64,7 @@ function App() {
       const vidData = await vidRes.json();
 
       if (vidRes.ok) {
-        setFileName(vidData.file);
+        setVideoFileName(vidData.file);
         setStatus("done");
         console.log("oyyy oyyy it work yet??: ", vidData.message);
       } else {
@@ -96,7 +98,7 @@ function App() {
 
       if (titleRes.ok) {
         //after link good just show title so this bye bye?
-        setFileName(tittleData.file);
+        setAudioFileName(tittleData.file);
         // setDownloadTitle(data.title);
         setStatus("done");
         console.log("Download done, title:", videoTitle);
@@ -117,7 +119,7 @@ function App() {
         const parsed = new URL(url);
         const videoId = parsed.searchParams.get("v");
         setThumbnailUrl(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
-      } catch (error) {}
+      } catch (error) { }
 
       const fetchTitle = async () => {
         try {
@@ -213,7 +215,8 @@ function App() {
                 setStatus("idle");
                 setUrl("");
                 setVideoTitle("");
-                setFileName("");
+                setAudioFileName("");
+                setVideoFileName("");
                 setThumbnailUrl("");
                 //user ấn tải xong thì mình wipe cho clear những giá trị trước đó
                 //là rỗng cho input mới với lần tải
