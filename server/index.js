@@ -172,7 +172,8 @@ app.post("/download_video", (req, res) => {
         fs.unlinkSync(audioTempPath);
         res.json({
           // thử log ra bên app.js
-          file: `${videoId}__${quality}.mp4`,
+          //đây là nội dung server trả về client
+          file: `${videoId}_${HEIGHT_MAP[quality]}.mp4`,
           message:
             "done downloading and mergin the video and audio and remove the tmp",
         });
