@@ -54,7 +54,7 @@ function App() {
       setStatus("tryna get the vid");
 
       const vidRes = await fetch(
-        "${process.env.REACT_APP_API_URL}/download_video",
+        `${process.env.REACT_APP_API_URL}/download_video`,
         {
           method: "POST",
           headers: {
@@ -90,7 +90,7 @@ function App() {
       setStatus("fetching");
 
       const titleRes = await fetch(
-        "${process.env.REACT_APP_API_URL}/download_audio",
+        `${process.env.REACT_APP_API_URL}/download_audio`,
         {
           method: "POST",
           headers: {
@@ -130,7 +130,7 @@ function App() {
       const fetchTitle = async () => {
         try {
           const res = await fetch(
-            "${process.env.REACT_APP_API_URL}/get-title",
+            `${process.env.REACT_APP_API_URL}/get-title`,
             {
               method: "POST", //option request for preflight
               headers: {
