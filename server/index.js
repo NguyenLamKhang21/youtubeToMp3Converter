@@ -1,11 +1,19 @@
 const express = require("express");
 const cors = require("cors");
-const { exec } = require("child_process");
+const { exec, execFile } = require("child_process");
 // use exec with child_process to run commands prompt commands from inside
 //your code like my server have its own cmd
 const path = require("path"); // help to find path to !!downloads!!
-const { error } = require("console");
 const fs = require("fs");
+const sanitizeHtml = require("sanitize-html");
+const { error } = require("console");
+const ALLOWED_HOSTS = [
+  "www.youtube.com", "youtube.com", "youtu.be",
+  "music.youtube.com", "m.youtube.com"
+];
+
+
+
 
 const app = express();
 //turning cors on
@@ -15,6 +23,31 @@ app.use(express.json());
 
 app.use("/files", express.static(path.join(__dirname, "downloads")));
 
+function sanitize(str) {
+  return sanitizeHtml(String(str), {
+    allowedTags: [],      //stip all html tags
+    allowedAttributes: {},//stip all html attributes
+  });
+}
+
+function isValidYoutubeUrl(urlString) {
+  try {
+    const parsed = new URL(urlString);
+    //must be https 
+    if (parsed.protocol !== "https:") return false;
+    //must be youtube domain
+    if (!ALLOWED_HOSTS.includes(parsed.hostname)) return false;
+    //must have a vid id 
+    if (parsed.hostname !== "youtu.be" &&
+      !parsed.searchParams.get("v")
+    ) return false;
+    return true
+  } catch (error) {
+    console.log("some shit wrong here bruh: ", error);
+    return false;
+  }
+}
+
 //chỉ tải audio (nếu mà thêm cái lấy title ở đây thì nó ko đc do phải tải với convert sang mp3 trên server
 // xong mới biết được tên video :)))))) không tải thì đm chỉ biết
 //cái url
@@ -23,6 +56,10 @@ app.post("/download_audio", (req, res) => {
 
   if (!url) {
     return res.status(400).json({ error: "no URL provided" });
+  }
+
+  if (!isValidYoutubeUrl(url)) {
+    return res.status(400).json({ error: "Invalid or unsafe URL" })
   }
 
   //bỏ đi query parameter thuộc dạng list với index do hiện tại chức năng của server bây giờ là chỉ tải 1 vid đơn lẻ
@@ -52,18 +89,16 @@ app.post("/download_audio", (req, res) => {
 
   // console.log("file name: ", filePath);
 
-  const command = `yt-dlp -x --audio-format mp3 -o "${filePath}.%(ext)s" "${safeUrl}"`;
-  //-x mean extract audio only
-  //then convert it into mp3
+  const command = `yt-dlp -x --audio-format mp3 -o "${filePath}.%(ext)s" "${safeUrl}"`
 
-  exec(
-    command,
+  execFile(
+    "yt-dlp", ["-x", "--audio-format", "mp3", "-o", `${filePath}.%(ext)s`, safeUrl],
     { maxBuffer: 1024 * 1024 * 10, timeout: 120000 },
     (error, stdout, stderr) => {
       if (error) {
         return res.status(500).json({
           error: "download fail man :(",
-          details: stderr,
+          details: sanitize(stderr),
         });
       }
 
@@ -83,6 +118,11 @@ app.post("/download_video", (req, res) => {
   if (!url || !quality) {
     return res.status(400).json({ error: "no URL or quality provided" });
   }
+
+  if (!isValidYoutubeUrl(url)) {
+    return res.status(400).json({ error: "Invalid or unsafe URL" })
+  }
+
   const cleanURL = new URL(url);
   cleanURL.searchParams.delete("list");
   cleanURL.searchParams.delete("index");
@@ -135,7 +175,6 @@ app.post("/download_video", (req, res) => {
 
   if (fs.existsSync(finalPath + ".mp4")) {
     return res.json({
-      //tí t thử log ra cái này xem
       message: "video already to on servers",
       file: `${videoId}_${HEIGHT_MAP[quality]}.mp4`,
     });
@@ -218,7 +257,7 @@ app.post("/get-title", (req, res) => {
       //suecces
       res.json({
         message: `title retrieve successfully: ${stdout.trim()}`,
-        title: stdout.trim(),
+        title: sanitize(stdout.trim()),
       });
     },
   );
