@@ -8,12 +8,12 @@ const fs = require("fs");
 const sanitizeHtml = require("sanitize-html");
 const { error } = require("console");
 const ALLOWED_HOSTS = [
-  "www.youtube.com", "youtube.com", "youtu.be",
-  "music.youtube.com", "m.youtube.com"
+  "www.youtube.com",
+  "youtube.com",
+  "youtu.be",
+  "music.youtube.com",
+  "m.youtube.com",
 ];
-
-
-
 
 const app = express();
 //turning cors on
@@ -25,23 +25,22 @@ app.use("/files", express.static(path.join(__dirname, "downloads")));
 
 function sanitize(str) {
   return sanitizeHtml(String(str), {
-    allowedTags: [],      //stip all html tags
-    allowedAttributes: {},//stip all html attributes
+    allowedTags: [], //stip all html tags
+    allowedAttributes: {}, //stip all html attributes
   });
 }
 
 function isValidYoutubeUrl(urlString) {
   try {
     const parsed = new URL(urlString);
-    //must be https 
+    //must be https
     if (parsed.protocol !== "https:") return false;
     //must be youtube domain
     if (!ALLOWED_HOSTS.includes(parsed.hostname)) return false;
-    //must have a vid id 
-    if (parsed.hostname !== "youtu.be" &&
-      !parsed.searchParams.get("v")
-    ) return false;
-    return true
+    //must have a vid id
+    if (parsed.hostname !== "youtu.be" && !parsed.searchParams.get("v"))
+      return false;
+    return true;
   } catch (error) {
     console.log("some shit wrong here bruh: ", error);
     return false;
@@ -59,7 +58,7 @@ app.post("/download_audio", (req, res) => {
   }
 
   if (!isValidYoutubeUrl(url)) {
-    return res.status(400).json({ error: "Invalid or unsafe URL" })
+    return res.status(400).json({ error: "Invalid or unsafe URL" });
   }
 
   //bỏ đi query parameter thuộc dạng list với index do hiện tại chức năng của server bây giờ là chỉ tải 1 vid đơn lẻ
@@ -68,6 +67,9 @@ app.post("/download_audio", (req, res) => {
   cleanUrl.searchParams.delete("list");
   cleanUrl.searchParams.delete("index");
   const videoId = cleanUrl.searchParams.get("v"); // lấy ra id định danh duy nhất của mỗi vidoe
+  if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    return res.status(400).json({ error: "Invalid video Id" });
+  }
 
   // console.log("this is the cleanURL", cleanUrl);
 
@@ -89,10 +91,10 @@ app.post("/download_audio", (req, res) => {
 
   // console.log("file name: ", filePath);
 
-  const command = `yt-dlp -x --audio-format mp3 -o "${filePath}.%(ext)s" "${safeUrl}"`
-
   execFile(
-    "yt-dlp", ["-x", "--audio-format", "mp3", "-o", `${filePath}.%(ext)s`, safeUrl],
+    //thay vì tạo biến command thì làm như v
+    "yt-dlp",
+    ["-x", "--audio-format", "mp3", "-o", `${filePath}.%(ext)s`, safeUrl],
     { maxBuffer: 1024 * 1024 * 10, timeout: 120000 },
     (error, stdout, stderr) => {
       if (error) {
@@ -120,7 +122,7 @@ app.post("/download_video", (req, res) => {
   }
 
   if (!isValidYoutubeUrl(url)) {
-    return res.status(400).json({ error: "Invalid or unsafe URL" })
+    return res.status(400).json({ error: "Invalid or unsafe URL" });
   }
 
   const cleanURL = new URL(url);
@@ -128,6 +130,10 @@ app.post("/download_video", (req, res) => {
   cleanURL.searchParams.delete("index");
   // lấy ra vid ID
   const videoId = cleanURL.searchParams.get("v");
+
+  if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    return res.status(400).json({ error: "Invalid video Id" });
+  }
   console.log("video ID: ", videoId);
 
   const safeURl = cleanURL.toString();
@@ -180,31 +186,49 @@ app.post("/download_video", (req, res) => {
     });
   }
 
-  const videoCmd = `yt-dlp -f "bestvideo[height<=${height}][ext=mp4]" -o "${videoTempPath}" "${safeURl}"`;
-  const audioCmd = `yt-dlp -f "bestaudio[ext=m4a]" -o "${audioTempPath}" "${safeURl}"`;
-  const mergeCmd = `ffmpeg -i "${videoTempPath}" -i "${audioTempPath}" -c:v copy -c:a copy "${finalPath}.mp4"`;
+  const videoCmd = [
+    "-f",
+    `bestvideo[height<=${height}][ext=mp4]`,
+    "-o",
+    videoTempPath,
+    safeURl,
+  ];
+
+  const audioCmd = ["-f", "bestaudio[ext=m4a]", "-o", audioTempPath, safeURl];
+
+  const mergeCmd = [
+    "-i",
+    videoTempPath,
+    "-i",
+    audioTempPath,
+    "-c:v",
+    "copy",
+    "-c:a",
+    "copy",
+    `${finalPath}.mp4`,
+  ];
   // -c:v copy = don't re-encode video (keeps quality, saves CPU)
   // -c:a copy = don't re-encode audio (same reason)
 
-  exec(videoCmd, (error, stdout, stderr) => {
+  execFile("yt-dlp", videoCmd, (error, stdout, stderr) => {
     if (error) {
       return res.status(500).json({
         error: "Video download failed",
-        details: stderr,
+        details: sanitize(stderr),
       });
     }
-    exec(audioCmd, (error, stdout, stderr) => {
+    execFile("yt-dlp", audioCmd, (error, stdout, stderr) => {
       if (error) {
         return res.status(500).json({
           error: "Audio download failed",
-          details: stderr,
+          details: sanitize(stderr),
         });
       }
-      exec(mergeCmd, (error, stdout, stderr) => {
+      execFile("ffmpeg", mergeCmd, (error, stdout, stderr) => {
         if (error) {
           return res.status(500).json({
             error: "Merged faield",
-            details: stderr,
+            details: sanitize(stderr),
           });
         }
         fs.unlinkSync(videoTempPath);
@@ -229,6 +253,10 @@ app.post("/get-title", (req, res) => {
     return res.status(400).json({ error: "no URL provided CUNT" });
   }
 
+  if (!isValidYoutubeUrl(url)) {
+    return res.status(400).json({ error: "Invalid or unsafe URL" });
+  }
+
   //bỏ đi query parameter thuộc dạng list với index do hiện tại chức năng của server bây giờ là chỉ tải 1 vid đơn lẻ
   //chứ không phải tải playlist
   const cleanUrl = new URL(url); // url dạng object
@@ -237,16 +265,17 @@ app.post("/get-title", (req, res) => {
 
   //lọc xong r thì nối lại link
   const safeUrl = cleanUrl.toString(); // có toString() thì biến nó thành dạng string và chỉ lấy ra phần origin có link
-  const command = `yt-dlp -e "${safeUrl}"`;
+  const command = ["-e", safeUrl];
 
-  exec(
+  execFile(
+    "yt-dlp",
     command,
     { encoding: "utf-8", env: { ...process.env, PYTHONIOENCODING: "utf-8" } },
     (error, stdout, stderr) => {
       if (error) {
         return res.status(500).json({
-          error: "can't retrieve the vid title",
-          details: stderr,
+          error: "can't retrieve the vid title ",
+          details: sanitize(stderr),
         });
       }
 
@@ -256,7 +285,7 @@ app.post("/get-title", (req, res) => {
 
       //suecces
       res.json({
-        message: `title retrieve successfully: ${stdout.trim()}`,
+        message: `title retrieve successfully: ${sanitize(stdout.trim())}`,
         title: sanitize(stdout.trim()),
       });
     },
