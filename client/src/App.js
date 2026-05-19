@@ -13,7 +13,7 @@ function App() {
   //convert sang mp3 cho user tải về
   const handlveAudioSave = async () => {
     // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
-    const fileUrl = `http://localhost:5000/files/${audioFileName}`;
+    const fileUrl = `${process.env.REACT_APP_API_URL}/files/${audioFileName}`;
     const res = await fetch(fileUrl);
     const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
     const blobUrl = URL.createObjectURL(blob); //creates a temporary invisible URL for that blob
@@ -29,7 +29,7 @@ function App() {
   //convert sang mp4 và cho user tải về
   const handleVideoSave = async () => {
     // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
-    const fileUrl = `http://localhost:5000/files/${videoFileName}`;
+    const fileUrl = `${process.env.REACT_APP_API_URL}/files/${videoFileName}`;
     console.log(fileUrl);
     const res = await fetch(fileUrl);
     const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
@@ -53,13 +53,16 @@ function App() {
     try {
       setStatus("tryna get the vid");
 
-      const vidRes = await fetch("http://localhost:5000/download_video", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const vidRes = await fetch(
+        "${process.env.REACT_APP_API_URL}/download_video",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url, quality }),
         },
-        body: JSON.stringify({ url, quality }),
-      });
+      );
 
       const vidData = await vidRes.json();
 
@@ -86,13 +89,16 @@ function App() {
     try {
       setStatus("fetching");
 
-      const titleRes = await fetch("http://localhost:5000/download_audio", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const titleRes = await fetch(
+        "${process.env.REACT_APP_API_URL}/download_audio",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url }),
         },
-        body: JSON.stringify({ url }),
-      });
+      );
 
       const tittleData = await titleRes.json();
 
@@ -119,17 +125,20 @@ function App() {
         const parsed = new URL(url);
         const videoId = parsed.searchParams.get("v");
         setThumbnailUrl(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
-      } catch (error) { }
+      } catch (error) {}
 
       const fetchTitle = async () => {
         try {
-          const res = await fetch("http://localhost:5000/get-title", {
-            method: "POST", //option request for preflight
-            headers: {
-              "Content-Type": "application/json",
+          const res = await fetch(
+            "${process.env.REACT_APP_API_URL}/get-title",
+            {
+              method: "POST", //option request for preflight
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ url }),
             },
-            body: JSON.stringify({ url }),
-          });
+          );
 
           const data = await res.json();
 

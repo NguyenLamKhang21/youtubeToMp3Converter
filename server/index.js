@@ -16,6 +16,14 @@ const ALLOWED_HOSTS = [
 ];
 
 const app = express();
+
+const downloadsDir = path.join(__dirname, "downloads");
+
+//create folder if not exist
+if (!fs.existsSync(downloadsDir)) {
+  fs.mkdir(downloadsDir, { recursive: true });
+}
+
 //turning cors on
 app.use(cors()); //allow all origins
 //tell the server to expect json data from the UI
@@ -108,7 +116,7 @@ app.post("/download_audio", (req, res) => {
       res.json({
         // thử log ra bên app.js
         message: "Audio Ready to Download successful",
-        file: `${videoId}`,
+        file: `${videoId}.mp3`,
       });
     },
   );
@@ -291,7 +299,7 @@ app.post("/get-title", (req, res) => {
     },
   );
 });
-
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
