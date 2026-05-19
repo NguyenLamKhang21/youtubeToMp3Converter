@@ -21,7 +21,7 @@ const downloadsDir = path.join(__dirname, "downloads");
 
 //create folder if not exist
 if (!fs.existsSync(downloadsDir)) {
-  fs.mkdir(downloadsDir, { recursive: true });
+  fs.mkdirSync(downloadsDir, { recursive: true });
 }
 
 //turning cors on
