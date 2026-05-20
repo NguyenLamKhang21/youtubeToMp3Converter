@@ -1,9 +1,10 @@
 # Use a lightweight Node.js base image
 FROM node:20-bookworm-slim
 
-# Install system dependencies (ffmpeg and curl)
+# Install system dependencies (ffmpeg, python3, and curl)
 RUN apt-get update && apt-get install -y \
     ffmpeg \
+    python3 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
