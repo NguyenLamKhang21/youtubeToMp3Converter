@@ -8,8 +8,8 @@ npm install
 apt-get update && apt-get install -y ffmpeg
 
 # 3. Install yt-dlp (download the latest binary)
-curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-chmod a+rx /usr/local/bin/yt-dlp
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ./yt-dlp
+chmod chmod a+rx ./yt-dlp
 
 # 4. Create downloads directory
 mkdir -p downloads
