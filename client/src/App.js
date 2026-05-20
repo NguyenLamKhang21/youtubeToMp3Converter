@@ -51,7 +51,7 @@ function App() {
     }
 
     try {
-      setStatus("tryna get the vid");
+      setStatus("fetching");
 
       const vidRes = await fetch(
         `${process.env.REACT_APP_API_URL}/download_video`,
@@ -164,9 +164,6 @@ function App() {
 
   return (
     <div className="background">
-      <header className="top-app-bar">
-        <h1>YOUTUBEXZ</h1>
-      </header>
 
       <div className="converter-card">
         <h2>YouTube to MP3/MP4</h2>
@@ -212,7 +209,7 @@ function App() {
           <div className="result">
             <div className="spinner"></div>
             <h3>Processing...</h3>
-            <p className="p-center">fetching info from server: {videoTitle}</p>
+            <p className="p-center">fetching info from server: <strong>{videoTitle}</strong></p>
           </div>
         )}
         {status === "aduioDone" && (
