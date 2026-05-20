@@ -1,4 +1,20 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+/* 
+  TUBEBAU - Bauhaus / Neo-Brutalist Design System
+  North Star: "Form Follows Function"
+  High contrast, bold geometry, deliberate asymmetry, solid offsets.
+*/
+
+:root {
+  --background: #f5f0e8;
+  --primary: #1a1a1a;
+  --accent-yellow: #ffcc00;
+  --accent-red: #e63b2e;
+  --accent-blue: #0055ff;
+  --surface-bright: #faf7f2;
+  --surface-container: #eee9e0;
+  --surface-variant: #e8e3da;
+  --outline-variant: #d0cbc3;
+}
 
 *,
 *::before,
@@ -6,143 +22,365 @@
   box-sizing: border-box;
 }
 
-.background {
+body {
   margin: 0;
-  font-family: "Inter", sans-serif;
+  padding: 0;
+  background-color: var(--background);
+  color: var(--primary);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Background Wrapper */
+.background {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: radial-gradient(circle at top right, #2d1b69, #0f172a 50%);
-  color: #e0e0e0;
+  position: relative;
+  /* Dotted paper background effect */
+  background-image: radial-gradient(rgba(26, 26, 26, 0.15) 2px, transparent 2px);
+  background-size: 32px 32px;
+  padding-bottom: 60px;
 }
 
-h1 {
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.converter-card {
-  background: rgba(255, 255, 255, 0.05); /* nền trong suốt nhẹ */
-  backdrop-filter: blur(16px); /* hiệu ứng kính mờ */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* viền mỏng */
-  border-radius: 24px;
-  padding: 40px;
-  max-width: 700px;
-  width: 90%; /* responsive */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  gap: 16px;
+/* Stark Top App Bar Header */
+.top-app-bar {
+  width: 100%;
+  background: var(--background);
+  border-bottom: 4px solid var(--primary);
+  padding: 20px 24px;
   text-align: center;
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 0px rgba(26, 26, 26, 1);
+  z-index: 10;
+}
+
+.top-app-bar h1 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+  color: var(--primary);
+}
+
+/* Central Converter Card Container */
+.converter-card {
+  background: var(--surface-bright);
+  border: 4px solid var(--primary);
+  box-shadow: 8px 8px 0px 0px var(--primary);
+  padding: 40px 32px;
+  max-width: 680px;
+  width: 90%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: relative;
+  margin-top: 10px;
+  transition: box-shadow 0.2s ease;
+}
+
+.converter-card h2 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+}
+
+.p-center {
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  margin: 0;
+}
+
+/* Bold Input Elements */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  text-align: left;
 }
 
 input[type="text"] {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
-  font-size: 1rem;
+  padding: 16px 0px;
+  border: none;
+  border-bottom: 4px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
   outline: none;
-  transition: border-color 0.3s ease;
+  border-radius: 0;
+  transition: border-color 0.2s ease;
+}
+
+input[type="text"]::placeholder {
+  color: rgba(26, 26, 26, 0.4);
 }
 
 input[type="text"]:focus {
-  border-color: #6c63ff;
+  border-bottom-color: var(--accent-blue);
 }
 
+/* Brutalist Buttons & Dropdowns */
 button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #6c63ff, #3b82f6);
-  color: white;
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 16px 24px;
+  border: 3px solid var(--primary);
+  background: var(--accent-yellow);
+  color: var(--primary);
   cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  margin-top: 16px;
+  box-shadow: 4px 4px 0px 0px var(--primary);
+  transition: all 0.1s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 0;
+  margin-top: 10px;
 }
 
 button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
+  background: var(--primary);
+  color: var(--background);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px 0px var(--primary);
 }
 
-/* animation spinner */
-.spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: #6c63ff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 16px auto;
+button:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px var(--primary);
 }
 
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Secondary Button Mode (MP3 vs MP4 differences) */
+button.download-btn {
+  background: var(--accent-blue);
+  color: white;
   width: 100%;
-  margin-top: 16px;
+  font-size: 1.2rem;
+  padding: 18px 24px;
 }
 
+button.download-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+button.convert-audio-btn {
+  background: var(--accent-blue);
+  color: white;
+}
+
+button.convert-audio-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+button.convert-video-btn {
+  background: var(--accent-yellow);
+  color: var(--primary);
+}
+
+button.convert-video-btn:hover {
+  background: var(--primary);
+  color: var(--accent-yellow);
+}
+
+/* Rest/Reset Link styled as plain Brutalist Action */
+button.rest-btn {
+  background: var(--background);
+  color: var(--primary);
+  font-size: 1rem;
+  border: 3px solid var(--primary);
+  box-shadow: 4px 4px 0px 0px var(--primary);
+  margin-top: 0px;
+}
+
+button.rest-btn:hover {
+  background: var(--accent-red);
+  color: white;
+}
+
+/* Neo Dropdown Select */
+select {
+  width: 100%;
+  padding: 16px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--surface-bright);
+  color: var(--primary);
+  border: 3px solid var(--primary);
+  border-radius: 0;
+  box-shadow: 4px 4px 0px 0px var(--primary);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M7%2010L12%2015L17%2010%22%20stroke%3D%22%231A1A1A%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 18px;
+  transition: all 0.15s ease;
+}
+
+select:focus {
+  border-color: var(--accent-blue);
+}
+
+/* Video Preview layout inside status=idle */
+.thumbnail-title {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 20px;
+  background: var(--surface-container);
+  border: 3px solid var(--primary);
+  box-shadow: 4px 4px 0px 0px var(--primary);
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.thumbnail-title img {
+  width: 140px;
+  height: 90px;
+  object-fit: cover;
+  border: 3px solid var(--primary);
+  filter: grayscale(100%);
+  transition: filter 0.3s ease;
+}
+
+.thumbnail-title:hover img {
+  filter: grayscale(0%);
+}
+
+.thumbnail-title p {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+/* Done Results view */
 .result {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  margin-top: 20px;
+  gap: 24px;
   width: 100%;
 }
 
-.download-btn {
-  width: 100%;
-  padding: 14px 24px;
+.result p {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
   font-size: 1.1rem;
+  margin: 0;
+  color: var(--primary);
 }
 
-.reset-btn {
-  background: none;
-  border: none;
-  color: #a5b4fc;
-  cursor: pointer;
-  text-decoration: underline;
-  font-size: 0.9rem;
-  padding: 8px;
-}
-
-.reset-btn:hover {
-  color: white;
-  transform: none;
-  box-shadow: none;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-img {
-  border-radius: 8px;
-  width: 300px;
-  height: 200px;
-  align-items: flex-start;
-  object-fit: cover;
-}
-
-.thumbnail-title {
-  display: flex;
-  flex-direction: row;
-  text-align: left;
-  column-gap: 10px;
+.result h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.2;
+  border-bottom: 3px dashed var(--primary);
+  padding-bottom: 8px;
+  width: 100%;
 }
 
 .download-thumbnail {
-  width: 450px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.download-thumbnail img {
+  width: 100%;
+  max-width: 460px;
+  height: 240px;
+  object-fit: cover;
+  border: 4px solid var(--primary);
+  box-shadow: 6px 6px 0px var(--primary);
+}
+
+/* Neo Step-Spinner for Fetching */
+@keyframes brutalSpin {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(180deg); }
+  75% { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 72px;
+  height: 72px;
+  border: 4px solid var(--primary);
+  background: var(--accent-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 0px var(--primary);
+  animation: brutalSpin 1s steps(4, end) infinite;
+  margin: 24px auto;
+}
+
+.spinner::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+}
+
+/* Material Symbols Outlined Icon Customization */
+.material-symbols-outlined {
+  vertical-align: middle;
+  font-size: 24px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .converter-card {
+    padding: 32px 20px;
+    gap: 20px;
+  }
+  .converter-card h2 {
+    font-size: 1.8rem;
+  }
+  .top-app-bar h1 {
+    font-size: 1.6rem;
+  }
+  .thumbnail-title {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .thumbnail-title img {
+    width: 100%;
+    height: 160px;
+  }
 }

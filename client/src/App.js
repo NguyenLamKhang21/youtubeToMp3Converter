@@ -68,7 +68,7 @@ function App() {
 
       if (vidRes.ok) {
         setVideoFileName(vidData.file);
-        setStatus("done");
+        setStatus("videoDone");
         console.log("oyyy oyyy it work yet??: ", vidData.message);
       } else {
         console.log(vidRes.message);
@@ -105,8 +105,7 @@ function App() {
       if (titleRes.ok) {
         //after link good just show title so this bye bye?
         setAudioFileName(tittleData.file);
-        // setDownloadTitle(data.title);
-        setStatus("done");
+        setStatus("aduioDone");
         console.log("Download done, title:", videoTitle);
         console.log("testing testing ", tittleData.message);
         console.log("testing testing file name gang", tittleData.file);
@@ -120,12 +119,16 @@ function App() {
   //add a dnbounce pattern in so that it will honly show the title of URL after a set ammount of time
   //only in use when the url change if not then mehhhh
   useEffect(() => {
+    if (!url) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       try {
         const parsed = new URL(url);
         const videoId = parsed.searchParams.get("v");
         setThumbnailUrl(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
-      } catch (error) {}
+      } catch (error) { }
 
       const fetchTitle = async () => {
         try {
@@ -161,23 +164,31 @@ function App() {
 
   return (
     <div className="background">
+      <header className="top-app-bar">
+        <h1>YOUTUBEXZ</h1>
+      </header>
+
       <div className="converter-card">
-        <h1>Youtube to MP3 / video MP4 converter</h1>
+        <h2>YouTube to MP3/MP4</h2>
         {status === "idle" && (
           <div className="input-group">
             <input
               type="text"
-              placeholder="paste Youtube url here"
+              placeholder="Paste YouTube URL here..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
             {/* sau khi user bỏ link vào xong thì fetch cái title hiện ra, với cái thumbnail nx */}
-            <div className="thumbnail-title">
-              {thumbnailUrl && <img src={thumbnailUrl} alt="Video thumbnail" />}
-              <p>{videoTitle}</p>
-            </div>
+            {thumbnailUrl && (
+              <div className="thumbnail-title">
+                <img src={thumbnailUrl} alt="Video thumbnail" />
+                <p>{videoTitle}</p>
+              </div>
+            )}
 
-            <button onClick={handleAudio}>Convert to MP3</button>
+            <button className="convert-audio-btn" onClick={handleAudio}>
+              <span className="material-symbols-outlined">audio_file</span> Convert to MP3
+            </button>
 
             <select
               name="quality"
@@ -190,33 +201,31 @@ function App() {
               <option value={"4k"}>MP4 - 4k</option>
             </select>
 
-            <button onClick={() => handleVideo(quality)}>
-              download Vidoeo
+            <button className="convert-video-btn" onClick={() => handleVideo(quality)}>
+              <span className="material-symbols-outlined">video_file</span> Download Video
             </button>
-            {/* tai sao nó chạy ra cái handle vidoe trước v???? */}
 
-            <p className="p-center">Enter a Youtbe URL to start downloading</p>
+            <p className="p-center">Enter a YouTube URL to start downloading</p>
           </div>
         )}
         {status === "fetching" && (
-          <>
-            <div className="spinner"></div>
-            <p>fetching info from server: {videoTitle}</p>
-          </>
-        )}
-        {status === "done" && (
           <div className="result">
-            <p>Done your MP3 is ready to go buckaroo click below to download</p>
-            <h3>{videoTitle}</h3>
+            <div className="spinner"></div>
+            <h3>Processing...</h3>
+            <p className="p-center">fetching info from server: {videoTitle}</p>
+          </div>
+        )}
+        {status === "aduioDone" && (
+          <div className="result">
+            <span className="material-symbols-outlined" style={{ fontSize: "64px", color: "var(--primary)" }}>check_circle</span>
+            <h3>Conversion Complete!</h3>
+            <p className="p-center">{videoTitle}</p>
 
             <div className="download-thumbnail">
               {thumbnailUrl && <img src={thumbnailUrl} alt="Video thumbnail" />}
             </div>
             <button className="download-btn" onClick={handlveAudioSave}>
-              Download MP3
-            </button>
-            <button className="download-btn" onClick={handleVideoSave}>
-              Download video in MP4 BABY
+              <span className="material-symbols-outlined">download</span> Download MP3
             </button>
             <button
               className="rest-btn"
@@ -227,8 +236,33 @@ function App() {
                 setAudioFileName("");
                 setVideoFileName("");
                 setThumbnailUrl("");
-                //user ấn tải xong thì mình wipe cho clear những giá trị trước đó
-                //là rỗng cho input mới với lần tải
+              }}
+            >
+              Convert Another
+            </button>
+          </div>
+        )}
+        {status === "videoDone" && (
+          <div className="result">
+            <span className="material-symbols-outlined" style={{ fontSize: "64px", color: "var(--primary)" }}>check_circle</span>
+            <h3>Conversion Complete!</h3>
+            <p className="p-center">{videoTitle}</p>
+
+            <div className="download-thumbnail">
+              {thumbnailUrl && <img src={thumbnailUrl} alt="Video thumbnail" />}
+            </div>
+            <button className="download-btn" onClick={handleVideoSave}>
+              <span className="material-symbols-outlined">download</span> Download Video
+            </button>
+            <button
+              className="rest-btn"
+              onClick={() => {
+                setStatus("idle");
+                setUrl("");
+                setVideoTitle("");
+                setAudioFileName("");
+                setVideoFileName("");
+                setThumbnailUrl("");
               }}
             >
               Convert Another
@@ -236,7 +270,24 @@ function App() {
           </div>
         )}
         {status === "error" && (
-          <p>something went wrong please check the URL and try again</p>
+          <div className="result text-center">
+            <span className="material-symbols-outlined" style={{ fontSize: "64px", color: "var(--accent-red)" }}>error</span>
+            <h3>Something Went Wrong</h3>
+            <p>Please check the URL and try again</p>
+            <button
+              className="rest-btn"
+              onClick={() => {
+                setStatus("idle");
+                setUrl("");
+                setVideoTitle("");
+                setAudioFileName("");
+                setVideoFileName("");
+                setThumbnailUrl("");
+              }}
+            >
+              Go Back
+            </button>
+          </div>
         )}
       </div>
     </div>
