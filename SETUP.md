@@ -2,6 +2,8 @@
 
 A full-stack app that lets you convert YouTube videos to MP3 audio or MP4 video at various quality levels (720p, 1080p, 4K).
 
+The Express backend serves both the API and the React frontend as a single process — no separate dev servers needed in production.
+
 ---
 
 ## 📋 Prerequisites
@@ -77,33 +79,137 @@ git clone https://github.com/NguyenLamKhang21/youtubeToMp3Converter.git
 cd youtubeToMp3Converter
 ```
 
-### 2. Set up the Server
+### 2. Install dependencies
 ```bash
+# Install server dependencies
 cd server
+npm install
+
+# Install client dependencies
+cd ../client
 npm install
 ```
 
-Create the downloads folder (the server stores downloaded files here):
-```bash
-mkdir downloads
-```
+### 3. Choose how to run it
 
-Start the server:
+You have two options: **Development mode** (for making code changes) or **Production mode** (for actual use / self-hosting).
+
+---
+
+## 🔧 Development Mode
+
+Use this when you're actively editing the code and want hot-reload on the frontend.
+
+**Terminal 1 — Start the server:**
 ```bash
+cd server
 node index.js
 ```
 
-The server will run on **http://localhost:5000**
-
-### 3. Set up the Client
-Open a **new terminal window**, then:
+**Terminal 2 — Start the React dev server:**
 ```bash
 cd client
-npm install
 npm start
 ```
 
-The React app will open automatically at **http://localhost:3000**
+The React dev server runs at **http://localhost:3000** and the API server runs at **http://localhost:5000**.
+
+> ⚠️ In development mode, you'll need a `client/.env` file so the React dev server knows where the API is:
+> ```
+> REACT_APP_API_URL=http://localhost:5000
+> ```
+> And you'll need to update the `fetch()` calls in `App.js` to use `${process.env.REACT_APP_API_URL}` as the base URL instead of relative paths.
+
+---
+
+## 🚀 Production Mode
+
+In production, Express serves both the API and the React frontend from a single process on **one port**. No separate React dev server needed.
+
+### 1. Build the React frontend
+```bash
+cd client
+npm run build
+```
+
+This creates a `client/build/` folder with optimized static files (HTML, CSS, JS).
+
+### 2. Start the server
+```bash
+cd server
+node index.js
+```
+
+### 3. Open the app
+Open **http://localhost:5000** in your browser. The Express server serves the React UI and handles all API requests on the same port.
+
+---
+
+## 🌐 Self-Hosting (Share With Friends Over the Internet)
+
+Want your friends to use your app from anywhere? Use [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) to expose your local server to the internet — no port forwarding needed, free HTTPS included, and your residential IP helps avoid YouTube bot detection.
+
+### Prerequisites
+- Your app running in **production mode** (see above)
+- [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) installed on your machine
+
+**Install cloudflared:**
+
+Windows:
+```bash
+winget install --id Cloudflare.cloudflared
+```
+
+macOS:
+```bash
+brew install cloudflared
+```
+
+Linux:
+```bash
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
+chmod +x /usr/local/bin/cloudflared
+```
+
+### Option A: Quick Tunnel (Temporary URL, no account needed)
+
+The fastest way to share — generates a random public URL that lasts as long as the command runs.
+
+**Terminal 1:**
+```bash
+cd server
+node index.js
+```
+
+**Terminal 2:**
+```bash
+cloudflared tunnel --url http://localhost:5000
+```
+
+Cloudflare will output a URL like `https://random-words.trycloudflare.com`. Send it to your friend — they can use it immediately.
+
+> ⚠️ The URL changes every time you restart the tunnel and dies when you close the terminal.
+
+### Option B: Named Tunnel (Permanent URL with custom domain)
+
+For a stable URL that never changes. Requires a Cloudflare account (free) and a domain name.
+
+1. **Authenticate:** `cloudflared tunnel login`
+2. **Create tunnel:** `cloudflared tunnel create ytdl-converter`
+3. **Create config file** at `~/.cloudflared/config.yml`:
+   ```yaml
+   tunnel: <YOUR-TUNNEL-ID>
+   credentials-file: <PATH-TO-TUNNEL-ID>.json
+
+   ingress:
+     - hostname: ytdl.yourdomain.com
+       service: http://localhost:5000
+     - service: http_status:404
+   ```
+4. **Route DNS:** `cloudflared tunnel route dns ytdl-converter ytdl.yourdomain.com`
+5. **Run tunnel:** `cloudflared tunnel run ytdl-converter`
+
+Your app is now permanently available at `https://ytdl.yourdomain.com`.
 
 ---
 
@@ -111,13 +217,17 @@ The React app will open automatically at **http://localhost:3000**
 
 ```
 youtubeToMp3Converter/
-├── client/               # React frontend
-│   └── src/
-│       ├── App.js        # Main app logic and UI
-│       └── App.css       # Styling
-└── server/               # Express backend
-    ├── index.js          # Server routes (download, convert, merge)
-    └── downloads/        # Where converted files are stored
+├── client/                # React frontend
+│   ├── src/
+│   │   ├── App.js         # Main app logic and UI
+│   │   └── App.css        # Styling
+│   └── build/             # Production build (generated by npm run build)
+├── server/                # Express backend
+│   ├── index.js           # API routes + serves React build in production
+│   ├── Dockerfile         # Docker config for containerized deployment
+│   └── downloads/         # Where converted files are temporarily stored
+├── SETUP.md               # This file
+└── .gitignore
 ```
 
 ---
@@ -149,12 +259,18 @@ youtubeToMp3Converter/
 - Make sure `yt-dlp` and `ffmpeg` are installed and in your PATH
 - Run `yt-dlp --update` to make sure you have the latest version (YouTube changes frequently break older versions)
 
+**403 errors or "Sign in to confirm you're not a bot":**
+- Update yt-dlp: `yt-dlp --update`
+- If running from a cloud server/VPS, YouTube may be blocking the datacenter IP — self-hosting from a residential connection works best
+
 **400 Bad Request on `/download_video`:**
 - Make sure a quality option is selected before clicking Download Video
 
 **File not found after download:**
-- Make sure the `server/downloads/` folder exists. Create it manually if needed:  
-  `mkdir server/downloads`
+- The `server/downloads/` folder is created automatically on server start. If it's missing for some reason, create it manually: `mkdir server/downloads`
+
+**Blank page on `localhost:5000` in production mode:**
+- Make sure you ran `npm run build` in the `client/` folder first
 
 ---
 
@@ -166,4 +282,4 @@ youtubeToMp3Converter/
 | Backend | Node.js + Express 5 |
 | YouTube download | yt-dlp |
 | Audio/Video merge | FFmpeg |
-| Cross-origin | CORS |
+| Tunneling (optional) | Cloudflare Tunnel |
