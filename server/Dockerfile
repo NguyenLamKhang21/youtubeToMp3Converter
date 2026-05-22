@@ -22,6 +22,9 @@ COPY package*.json ./
 # Install Node dependencies
 RUN npm ci --only=production
 
+# Install the yt-dlp PO token plugin
+RUN pip3 install -U bgutil-ytdlp-pot-provider
+
 # Copy the rest of the application source code
 COPY . .
 

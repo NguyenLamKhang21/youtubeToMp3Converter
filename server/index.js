@@ -299,7 +299,17 @@ app.post("/get-title", (req, res) => {
     },
   );
 });
+
 const PORT = process.env.PORT || 5000;
+
+//serve react FE built static file
+app.use(express.static(path.join(__dirname, "..", "client", "build")))
+
+//catch all serve index.html for all non API route
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "..", "client", "build", "index.html"))
+})
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

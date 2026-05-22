@@ -13,7 +13,7 @@ function App() {
   //convert sang mp3 cho user tải về
   const handlveAudioSave = async () => {
     // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
-    const fileUrl = `${process.env.REACT_APP_API_URL}/files/${audioFileName}`;
+    const fileUrl = `/files/${audioFileName}`;
     const res = await fetch(fileUrl);
     const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
     const blobUrl = URL.createObjectURL(blob); //creates a temporary invisible URL for that blob
@@ -29,7 +29,8 @@ function App() {
   //convert sang mp4 và cho user tải về
   const handleVideoSave = async () => {
     // lấy file ra ở server r fetch về chuyển từ mp3 sang raw binary data r cho tải
-    const fileUrl = `${process.env.REACT_APP_API_URL}/files/${videoFileName}`;
+    const fileUrl = `/files/${videoFileName}`;
+    console.log("video file name: ", videoFileName);
     console.log(fileUrl);
     const res = await fetch(fileUrl);
     const blob = await res.blob(); //chuyển dạng mp3 sang raw binary data
@@ -37,7 +38,8 @@ function App() {
 
     const link = document.createElement("a"); //creates an invisible download link in memory
     link.href = blobUrl;
-    link.download = `${videoTitle || "download"}.mp4`;
+    link.download = `${videoTitle || "download"}_${quality}.mp4`;
+    setQuality("");
     link.click();
 
     URL.revokeObjectURL(blobUrl); //dùng xong bỏ
@@ -54,7 +56,7 @@ function App() {
       setStatus("fetching");
 
       const vidRes = await fetch(
-        `${process.env.REACT_APP_API_URL}/download_video`,
+        `/download_video`,
         {
           method: "POST",
           headers: {
@@ -90,7 +92,7 @@ function App() {
       setStatus("fetching");
 
       const titleRes = await fetch(
-        `${process.env.REACT_APP_API_URL}/download_audio`,
+        `/download_audio`,
         {
           method: "POST",
           headers: {
@@ -133,7 +135,7 @@ function App() {
       const fetchTitle = async () => {
         try {
           const res = await fetch(
-            `${process.env.REACT_APP_API_URL}/get-title`,
+            `/get-title`,
             {
               method: "POST", //option request for preflight
               headers: {
